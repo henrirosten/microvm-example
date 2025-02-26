@@ -1,13 +1,11 @@
 {
-  self,
   inputs,
-  lib,
-  microvm,
+  self,
   ...
 }:
 let
   specialArgs = {
-    inherit self inputs;
+    inherit inputs self;
   };
 in
 {
@@ -20,10 +18,12 @@ in
 
     # 'builder' with:
     # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/qemu-vm.nix
-    builder-nixosvm = lib.nixosSystem {
+    builder-nixosvm = inputs.nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
-        (import ./nixos-qemu.nix { })
+        (import ./vm-nixos-qemu.nix {
+          inherit (self.nixosConfigurations.builder-nixosvm) config;
+        })
         self.nixosModules.nixos-builder
         {
           virtualisation.vmVariant.virtualisation.forwardPorts = [
@@ -39,12 +39,14 @@ in
 
     # 'builder' with:
     # https://github.com/astro/microvm.nix
-    builder-microvm = lib.nixosSystem {
+    builder-microvm = inputs.nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
         self.nixosModules.nixos-builder
-        microvm.nixosModules.microvm
-        (import ./microvm-qemu.nix { name = "builder"; })
+        inputs.microvm.nixosModules.microvm
+        (import ./vm-microvm-qemu.nix {
+          inherit (self.nixosConfigurations.builder-nixosvm) config;
+        })
         {
           microvm.forwardPorts = [
             {
@@ -59,10 +61,11 @@ in
 
     # 'jenkins-controller' with:
     # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/qemu-vm.nix
-    jenkins-nixosvm = lib.nixosSystem {
+    jenkins-nixosvm = inputs.nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
-        (import ./nixos-qemu.nix {
+        (import ./vm-nixos-qemu.nix {
+          inherit (self.nixosConfigurations.jenkins-nixosvm) config;
           ram_gb = 20;
           disk_gb = 150;
         })
@@ -86,13 +89,13 @@ in
 
     # 'jenkins-controller' with:
     # https://github.com/astro/microvm.nix
-    jenkins-microvm = lib.nixosSystem {
+    jenkins-microvm = inputs.nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
         self.nixosModules.nixos-jenkins-controller
-        microvm.nixosModules.microvm
-        (import ./microvm-qemu.nix {
-          name = "jenkins-controller";
+        inputs.microvm.nixosModules.microvm
+        (import ./vm-microvm-qemu.nix {
+          inherit (self.nixosConfigurations.jenkins-nixosvm) config;
           ram_gb = 20;
           disk_gb = 20;
         })
@@ -112,14 +115,5 @@ in
         }
       ];
     };
-  };
-  flake.packages."x86_64-linux" = {
-    # https://github.com/astro/microvm.nix
-    builder-microvm = self.nixosConfigurations.builder-microvm.config.microvm.declaredRunner;
-    jenkins-microvm = self.nixosConfigurations.jenkins-microvm.config.microvm.declaredRunner;
-
-    # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/qemu-vm.nix
-    builder-nixosvm = self.nixosConfigurations.builder-nixosvm.config.system.build."vm";
-    jenkins-nixosvm = self.nixosConfigurations.jenkins-nixosvm.config.system.build."vm";
   };
 }

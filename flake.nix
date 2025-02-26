@@ -21,32 +21,17 @@
   };
 
   outputs =
-    inputs@{
-      flake-parts,
-      nixpkgs,
-      microvm,
-      ...
-    }:
-    flake-parts.lib.mkFlake
-      {
-        inherit inputs;
-        specialArgs = {
-          inherit microvm;
-          inherit (nixpkgs) lib;
-        };
-      }
-      {
-        systems = [
-          "x86_64-linux"
-          "aarch64-linux"
-          "x86_64-darwin"
-          "aarch64-darwin"
-        ];
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
-        imports = [
-          ./nix
-          ./hosts
-          ./users
-        ];
-      };
+      imports = [
+        ./nix
+        ./hosts
+        ./users
+      ];
+    };
 }

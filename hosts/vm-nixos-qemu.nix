@@ -2,6 +2,7 @@
   vcpus ? 4,
   ram_gb ? 16,
   disk_gb ? 16,
+  ...
 }:
 {
   fileSystems."/".device = "/dev/disk/by-label/nixos";

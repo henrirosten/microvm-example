@@ -20,6 +20,12 @@ in
       hosts-common
       user-hrosten
     ]);
+  virtualisation.vmVariant.virtualisation.sharedDirectories.shr = {
+    source = "/tmp/shared/jenkins-controller";
+    target = "/shared";
+  };
+  virtualisation.vmVariant.sops.age.sshKeyPaths = [ "/shared/ssh_host_ed25519_key" ];
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   networking = {
     hostName = "jenkins-controller";
@@ -157,13 +163,15 @@ in
       # Retrieved with 'base64 -w0 /etc/ssh/ssh_host_ed25519_key.pub'
       build4_pubkey='c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1yTFJWQWk3ZERYVUYxRUZUZDdvSEx5b2x4RlNrRTZNUk9YdklNK1VxRG8gcm9vdEBidWlsZDQK'
       hetzarm_pubkey='c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUx4NHpVNGdJa1RZLzFvS0VPa2Y5Z1RKQ2hkeC9qUjNsRGdaN3AvYzdMRUsgcm9vdEBVYnVudHUtMjIwNC1qYW1teS1hcm02NC1iYXNlCg=='
-      common_elems='/run/secrets/remote_build_ssh_key 8 3 kvm,nixos-test,benchmark,big-parallel -'
+      common_elems='/run/secrets/remote_build_ssh_key 8 10 kvm,nixos-test,benchmark,big-parallel -'
       echo "ssh://remote-build@build4.vedenemo.dev x86_64-linux $common_elems $build4_pubkey" >/etc/nix/machines
-      echo "ssh://remote-build@hetzarm.vedenemo.dev x86_64-linux $common_elems $hetzarm_pubkey" >>/etc/nix/machines
+      echo "ssh://remote-build@hetzarm.vedenemo.dev aarch64-linux $common_elems $hetzarm_pubkey" >>/etc/nix/machines
     '';
   };
 
   # fail2ban on the builder(s) dislike ssh-keyscan if repeated too quickly
+  # which is why we manually hardcode the base64 encoded public key in the
+  # 'populate-builder-machines' service, instead of using the below service:
   #systemd.services.populate-known-hosts = {
   #  after = [
   #    "network-online.target"
@@ -214,6 +222,6 @@ in
     system-features = nixos-test benchmark big-parallel kvm
     builders-use-substitutes = true
     builders = @/etc/nix/machines
-    max-jobs = 2
+    max-jobs = 1
   '';
 }
