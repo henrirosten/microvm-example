@@ -1,5 +1,5 @@
 {
-  config,
+  name,
   vcpus ? 4,
   ram_gb ? 16,
   disk_gb ? 16,
@@ -22,8 +22,16 @@
     volumes = [
       {
         mountPoint = "/";
-        image = "microvm.${config.system.name}.persist.img";
+        image = "microvm.${name}.persist.img";
         size = disk_gb * 1024;
+      }
+    ];
+    shares = [
+      {
+        proto = "9p";
+        tag = "shared";
+        source = "/tmp/shared/${name}";
+        mountPoint = "/shared";
       }
     ];
   };

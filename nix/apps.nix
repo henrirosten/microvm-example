@@ -33,16 +33,21 @@ in
   flake.apps."x86_64-linux" = {
     jenkins-microvm = {
       type = "app";
-      program = self.nixosConfigurations.jenkins-microvm.config.microvm.declaredRunner;
+      program = pkgs.writeShellScriptBin "jenkins-nixosvm-with-secrets" ''
+        echo "[+] Running $(realpath "$0")"
+        secret="${self.outPath}/hosts/jenkins-controller/secrets.yaml"
+        todir="${self.nixosConfigurations.jenkins-microvm.config.virtualisation.vmVariant.virtualisation.sharedDirectories.shr.source}"
+        ${decrypt-sops-key} "$secret" "$todir"
+        ${pkgs.lib.getExe self.nixosConfigurations.jenkins-microvm.config.microvm.declaredRunner}
+        rm -fr "$todir/ssh_host_ed25519_key"
+      '';
+
     };
     builder-microvm = {
       type = "app";
       program = self.nixosConfigurations.builder-microvm.config.microvm.declaredRunner;
     };
-    builder-nixosvm = {
-      type = "app";
-      program = self.nixosConfigurations.builder-nixosvm.config.system.build.vm;
-    };
+
     jenkins-nixosvm = {
       type = "app";
       program = pkgs.writeShellScriptBin "jenkins-nixosvm-with-secrets" ''
@@ -53,6 +58,10 @@ in
         ${pkgs.lib.getExe self.nixosConfigurations.jenkins-nixosvm.config.system.build.vm}
         rm -fr "$todir/ssh_host_ed25519_key"
       '';
+    };
+    builder-nixosvm = {
+      type = "app";
+      program = self.nixosConfigurations.builder-nixosvm.config.system.build.vm;
     };
   };
 }

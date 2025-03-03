@@ -24,7 +24,7 @@ in
     source = "/tmp/shared/jenkins-controller";
     target = "/shared";
   };
-  virtualisation.vmVariant.sops.age.sshKeyPaths = [ "/shared/ssh_host_ed25519_key" ];
+  sops.age.sshKeyPaths = [ "/shared/ssh_host_ed25519_key" ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   networking = {

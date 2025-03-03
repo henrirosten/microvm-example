@@ -21,9 +21,7 @@ in
     builder-nixosvm = inputs.nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
-        (import ./vm-nixos-qemu.nix {
-          inherit (self.nixosConfigurations.builder-nixosvm) config;
-        })
+        (import ./vm-nixos-qemu.nix { })
         self.nixosModules.nixos-builder
         {
           virtualisation.vmVariant.virtualisation.forwardPorts = [
@@ -45,7 +43,7 @@ in
         self.nixosModules.nixos-builder
         inputs.microvm.nixosModules.microvm
         (import ./vm-microvm-qemu.nix {
-          inherit (self.nixosConfigurations.builder-nixosvm) config;
+          name = "builder";
         })
         {
           microvm.forwardPorts = [
@@ -65,7 +63,6 @@ in
       inherit specialArgs;
       modules = [
         (import ./vm-nixos-qemu.nix {
-          inherit (self.nixosConfigurations.jenkins-nixosvm) config;
           ram_gb = 20;
           disk_gb = 150;
         })
@@ -95,7 +92,7 @@ in
         self.nixosModules.nixos-jenkins-controller
         inputs.microvm.nixosModules.microvm
         (import ./vm-microvm-qemu.nix {
-          inherit (self.nixosConfigurations.jenkins-nixosvm) config;
+          name = "jenkins-controller";
           ram_gb = 20;
           disk_gb = 20;
         })
