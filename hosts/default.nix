@@ -45,6 +45,7 @@ in
         self.nixosModules.nixos-builder
         inputs.microvm.nixosModules.microvm
         (import ./vm-microvm-qemu.nix {
+          inherit inputs;
           inherit (self.nixosConfigurations.builder-nixosvm) config;
         })
         {
@@ -95,6 +96,7 @@ in
         self.nixosModules.nixos-jenkins-controller
         inputs.microvm.nixosModules.microvm
         (import ./vm-microvm-qemu.nix {
+          inherit inputs;
           inherit (self.nixosConfigurations.jenkins-nixosvm) config;
           ram_gb = 20;
           disk_gb = 20;

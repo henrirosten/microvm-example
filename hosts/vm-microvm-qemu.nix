@@ -1,10 +1,24 @@
 {
   config,
+  inputs,
   vcpus ? 4,
   ram_gb ? 16,
   disk_gb ? 16,
   ...
 }:
+let
+  pkgs = import inputs.nixpkgs { system = "x86_64-linux"; };
+  create-cow2 = ''
+    set -xeu
+    name="./microvm.${config.system.name}.qcow2"
+    size="${builtins.toString disk_gb}G"
+    temp=$(mktemp)
+    ${pkgs.qemu}/bin/qemu-img create -f raw "$temp" "$size"
+    ${pkgs.e2fsprogs}/bin/mkfs.ext4 -L nixos "$temp"
+    ${pkgs.qemu}/bin/qemu-img convert -f raw -O qcow2 "$temp" "$name"
+    rm "$temp"
+  '';
+in
 {
   microvm = {
     optimize.enable = false;
@@ -19,11 +33,12 @@
       }
     ];
     writableStoreOverlay = "/nix/.rw-store";
+    preStart = create-cow2;
     volumes = [
       {
         mountPoint = "/";
-        image = "microvm.${config.system.name}.persist.img";
-        size = disk_gb * 1024;
+        autoCreate = false;
+        image = "./microvm.${config.system.name}.qcow2";
       }
     ];
   };
