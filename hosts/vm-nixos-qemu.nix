@@ -7,6 +7,7 @@
 {
   fileSystems."/".device = "/dev/disk/by-label/nixos";
   boot.loader.grub.device = "/dev/disk/by-label/nixos";
+  virtualisation.vmVariant.virtualisation.qemu.options = [ "-enable-kvm" ];
   virtualisation.vmVariant.virtualisation.graphics = false;
   virtualisation.vmVariant.virtualisation.cores = vcpus;
   virtualisation.vmVariant.virtualisation.memorySize = ram_gb * 1024;

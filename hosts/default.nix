@@ -26,8 +26,6 @@ in
         })
         self.nixosModules.nixos-builder
         {
-          virtualisation.vmVariant.virtualisation.qemu.package =
-            (import inputs.nixpkgs { system = "x86_64-linux"; }).qemu_kvm;
           virtualisation.vmVariant.virtualisation.forwardPorts = [
             {
               from = "host";
